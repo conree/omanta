@@ -1,6 +1,7 @@
 # omanta — native Qt Quick/GIO file manager for Omarchy.
 #
-# Builds from the release tag. For a local test build from your working
+# conree fork: builds the system-icon-theme branch (upstream builds the
+# release tag). For a local test build from your working
 # tree, swap source= for "$pkgname::git+file://<repo-path>" and add back
 #   pkgver() { cd "$pkgname"; printf "0.r%s.%s" \
 #     "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"; }
@@ -12,7 +13,7 @@
 
 pkgname=omanta
 pkgver=0.1.29
-pkgrel=1
+pkgrel=2
 pkgdesc="Native file manager for Omarchy (Qt Quick + GIO)"
 arch=('x86_64' 'aarch64')
 url="https://github.com/28allday/omanta"
@@ -27,7 +28,7 @@ optdepends=('gvfs-smb: browse smb:// shares'
             'localsearch: full-text search'
             'sushi: Space previews')
 makedepends=('cmake' 'ninja' 'git')
-source=("$pkgname::git+https://github.com/28allday/omanta.git#tag=v$pkgver")
+source=("$pkgname::git+https://github.com/conree/omanta.git#branch=system-icon-theme")
 sha256sums=('SKIP')
 
 build() {
