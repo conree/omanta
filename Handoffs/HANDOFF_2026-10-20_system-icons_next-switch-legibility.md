@@ -5,6 +5,16 @@ Clone: `/home/si/Projects/omanta`
 
 ## State at end of session
 
+### Update 2026-10-21 — Preferences controls readability (local source change)
+- `qml/PreferencesDialog.qml` now gives the shared `PrefSwitch` an explicit `ON`/`OFF` label, a round handle that moves left/right with the state, and a theme-coloured track when enabled. This addresses the mistaken reading described below for all Preferences switches.
+- The two range sliders now show the current value above the track and clear endpoint guidance below it. Reorder Hold Time also labels all four snap values (0.5, 1.0, 1.5, 2.0 seconds); Background Opacity names the transparent and opaque ends.
+- Follow-up correction from the user: the switch thumb is now a rectangular segment that is purple on the right when ON and gray on the left when OFF; the opposite side of the track shows the matching `ON`/`OFF` text.
+- The Preferences window background and its cards are now fully opaque, retaining their theme RGB colours, so the existing background-opacity preference does not reduce contrast in Preferences.
+- User installed the local package `omanta 0.1.29-3` and confirmed that the switch now reads correctly.
+- Submitted upstream as [PR #44](https://github.com/28allday/omanta/pull/44), branch `pr/preferences-control-readability` from `upstream/master`. It contains only the Preferences controls and opacity changes; the fork-only system icon preference is excluded. Existing PR #43 remains open and unchanged.
+- Debug and package Release builds completed; `qmllint qml/PreferencesDialog.qml` and `git diff --check` pass. Automated tests were not run. The update in the `system-icon-theme` worktree remains uncommitted; the separate PR branch is committed and pushed.
+- The workspace instruction prohibits running tests unless requested, so continue with visual review/build packaging only as authorized; do not run `./bin/test` without a direct request.
+
 ### Done and installed
 - **Branch `system-icon-theme`** (the branch the installed package is built from)
   - `4ea6fbd` adds a "Use System Icon Theme" preference: Preferences → Appearance, setting key `useSystemIcons`, default off.
@@ -19,7 +29,7 @@ Clone: `/home/si/Projects/omanta`
   - It contains only the feature commit; the PKGBUILD commit is not included.
 - The owner usually closes PRs and folds them into the next squashed release, crediting the contributor in the release notes (see #37 and #39). If a release ships `useSystemIcons`, switch back to upstream builds.
 
-## NEXT CHANGE (planned for 2026-10-21): make the on/off state of the Preferences switches readable
+## Change context: make the on/off state of the Preferences switches readable
 
 ### Problem
 The user turned the "Use System Icon Theme" switch off by accident. With this theme, an ON switch shows:
@@ -29,26 +39,22 @@ The user turned the "Use System Icon Theme" switch off by accident. With this th
 The purple filled part reads as the "selected" side, so ON looks like OFF. The user's screenshot showed the switch ON, but the user believed it was off.
 
 ### Where
-- `qml/PreferencesDialog.qml:169`, `component PrefSwitch: Switch { ... }`. Only padding is customised; the indicator is the stock control style.
+- `qml/PreferencesDialog.qml:169`, `component PrefSwitch: Switch { ... }`. The shared component now supplies a custom indicator.
 - No `QQuickStyle` is set anywhere in `src/` or `qml/`. Qt therefore picks its default Controls style. Fusion is assumed from its look but not confirmed: check with `QQuickStyle::name()` or `QT_QUICK_CONTROLS_STYLE`.
 - `PrefSwitch` is used 9 times in that file, so one fix covers every Preferences switch.
 
-### Suggested approach (not started; confirm with the user before building)
-1. Give `PrefSwitch` a custom `indicator`:
-   - track: filled `Colors.accent` when checked, outline only (`Colors.textDim` border, transparent fill) when unchecked;
-   - handle: a round knob in a contrasting colour (`Colors.text` or white), animated from left (off) to right (on).
-2. Optionally show a small "On" / "Off" text label next to the switch (`Colors.textDim`).
-3. Use theme colours only (`Colors.*`), so it follows `omarchy theme set`. Check a light theme too (Alucard).
+### Implemented locally on 2026-10-21
+1. The custom indicator has a gray track and a moving rectangular thumb: `Colors.accent` on the right when checked, `Colors.textDim` on the left when unchecked.
+2. It prints `ON` or `OFF` opposite the thumb and uses theme colours (`Colors.*`) so it follows `omarchy theme set`. Light-theme appearance still needs a visual check.
 
-### Steps when building
-1. Work on a new branch off `system-icon-theme`, or commit straight to it if the user agrees.
-2. Run `./bin/test` and confirm all 26 suites pass.
-3. Test the change with the user's real settings left untouched, using two variables together:
+### Remaining release steps (not yet done)
+1. Confirm the user's preferred branch/commit workflow before committing; the current edits are uncommitted on `system-icon-theme`.
+2. If the user asks for tests, use the isolated settings and D-Bus setup below:
    - `OMANTA_SETTINGS_FILE=<copy>` so the test uses a copy of the settings file;
    - `dbus-run-session --` so the test doesn't hand off to the running omanta.
-4. Screenshot the window with `grim -g` (omanta was on monitor DP-2, workspace 2).
-5. Bump `pkgrel` to 3 in `packaging/PKGBUILD`, push, `makepkg` in the scratchpad, and have the user run `sudo pacman -U <pkg>`.
-6. Offer it upstream as a SEPARATE PR, branched from `upstream/master`. Leave PR #43 alone.
+3. Visually inspect Preferences in both dark and light themes; omanta was on monitor DP-2, workspace 2.
+4. If packaging is requested, bump `pkgrel` to 3 in `packaging/PKGBUILD`, build the package, and let the user install it.
+5. Offer the change upstream as a SEPARATE PR, branched from `upstream/master`. Leave PR #43 alone.
 
 ## Gotchas
 - Plain `grep` is a broken shell function on this machine; use `/usr/bin/grep`.
